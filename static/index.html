@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-cloud text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-semibold text-gray-900">Cloud Storage</h1>
+                </div>                <div class="flex items-center space-x-4">
+                    <span id="userInfo" class="text-sm text-gray-600"></span>
+                    <button id="uploadBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Upload
+                    </button>
+                    <button id="newFolderBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-folder-plus mr-2"></i>New Folder
+                    </button>
+                    <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="bg-white border-b px-4 py-3">
+        <div class="max-w-7xl mx-auto">
+            <div id="breadcrumb" class="flex items-center space-x-2 text-sm text-gray-600">
+                <i class="fas fa-home"></i>
+                <span class="cursor-pointer hover:text-blue-600" onclick="navigateToPath('')">Home</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+
+        <!-- File Browser -->
+        <div id="fileBrowser" class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Files and Folders</h2>
+            </div>
+            
+            <!-- Grid View -->
+            <div id="fileGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 p-6">
+                <!-- Files and folders will be populated here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <i class="fas fa-folder-open text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">This folder is empty</h3>
+                <p class="text-gray-500 mb-6">Upload files or create folders to get started</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Upload Files</h3>
+                <button id="closeUploadModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <input type="file" id="fileInput" multiple class="hidden">
+                <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-4"></i>
+                <p class="text-gray-600 mb-2">Drag and drop files here</p>
+                <p class="text-gray-400 text-sm mb-4">or</p>
+                <button id="selectFilesBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Choose Files
+                </button>
+            </div>
+
+            <div id="uploadProgress" class="hidden mt-4">
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="progressText" class="text-sm text-gray-600 mt-2">Uploading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div id="folderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">New Folder</h3>
+                <button id="closeFolderModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <input type="text" id="folderNameInput" placeholder="Folder name" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            
+            <div class="flex justify-end space-x-3">
+                <button id="cancelFolderBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button id="createFolderBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="hidden fixed bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+        <button id="downloadItem" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+            <i class="fas fa-download mr-2"></i>Download
+        </button>
+        <button id="renameItem" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+            <i class="fas fa-edit mr-2"></i>Rename
+        </button>
+        <button id="deleteItem" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600">
+            <i class="fas fa-trash mr-2"></i>Delete
+        </button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
